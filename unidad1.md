@@ -35,12 +35,12 @@ Para cada caso de uso, indica la técnica generativa más apropiada (GAN, VAE, D
 
 | Caso de Uso | Técnica | Justificación |
 |-------------|---------|---------------|
-| App móvil que aplica filtros artísticos a fotos en tiempo real (<100ms) |GAN|Para estilo en tiempo real necesitas inferencia súper rápida en una sola pasada (feed-forward). Una GAN entrenada para image-to-image translation suele dar buen look visual con latencia baja en móvil.|
-| Plataforma de generación de arte digital de alta calidad con control por texto |Difusión|Los modelos de difusión hoy dominan en calidad visual y estabilidad para texto→imagen, además permiten buen control (prompts, negativos, CFG, inpainting). El costo es más pasos de muestreo, pero en una plataforma no es tan crítico como en móvil.|
-| Sistema de detección de anomalías en imágenes médicas que necesita un espacio latente interpretable |VAE|Un VAE aprende un espacio latente continuo y estructurado (útil para interpretabilidad y análisis). Para anomalías puedes medir “qué tan probable” es una imagen bajo el modelo o usar error de reconstrucción en un latent que tiene sentido.|
-| Generador de datos sintéticos para entrenar modelos de reconocimiento facial preservando privacidad |GAN |Las GAN suelen producir rostros realistas y variados, útiles como data augmentation sin copiar identidades reales si se entrena bien. Puedes controlar identidad/atributos (edad, pose, iluminación) con GANs condicionadas para balancear el dataset.|
-| Asistente virtual que responde preguntas sobre documentación técnica |LLM|Es un problema de lenguaje: entender preguntas, buscar/razonar sobre texto y redactar respuestas. Un LLM (idealmente con RAG sobre tu documentación) es lo más directo y efectivo.|
-| Herramienta de interpolación entre estilos artísticos para animación |VAE|La interpolación suave entre estilos es natural en un espacio latente continuo: mezclas vectores y decodificas frames intermedios. Con VAEs puedes lograr transiciones más “continuas” y controlables que con modelos puramente adversariales.|
+| App móvil que aplica filtros artísticos a fotos en tiempo real (<100ms) |GAN|Las GANs son perfectas aquí porque funcionan en una sola pasada, lo que las hace súper rápidas. En un móvil necesitas que sea instantáneo, y las GANs de transferencia de estilo te dan resultados visuales muy buenos sin hacerte esperar.|
+| Plataforma de generación de arte digital de alta calidad con control por texto |Difusión|Ahora mismo los modelos de difusión son los reyes en arte generado por texto - piensa en Stable Diffusion o DALL-E. Dan una calidad impresionante y te permiten ajustar muchísimo con prompts, aunque son más lentos. Para una plataforma web, ese tiempo extra no es problema.|
+| Sistema de detección de anomalías en imágenes médicas que necesita un espacio latente interpretable |VAE|Los VAE crean un espacio latente más ordenado y fácil de entender que otras opciones. Esto es clave en medicina porque puedes ver qué tan "rara" es una imagen o qué tan bien se reconstruye, lo que ayuda a detectar casos anormales de forma más transparente.|
+| Generador de datos sintéticos para entrenar modelos de reconocimiento facial preservando privacidad |GAN |Las GANs se han hecho famosas por crear rostros que no existen pero parecen totalmente reales. Son geniales para crear datos de entrenamiento sin usar fotos de gente real, y puedes controlar cosas como edad o iluminación para tener un dataset más variado.|
+| Asistente virtual que responde preguntas sobre documentación técnica |LLM|Esto es justo para lo que están hechos los LLMs - entender preguntas y dar respuestas coherentes sobre texto. Si le añades un sistema RAG que busque en tu documentación, tienes el asistente perfecto para ese trabajo.|
+| Herramienta de interpolación entre estilos artísticos para animación |VAE|Los VAE son ideales cuando quieres hacer transiciones suaves porque su espacio latente es continuo. Básicamente puedes "mezclar" dos estilos poco a poco y generar los frames intermedios de forma muy natural, perfecto para animaciones fluidas.|
 
 ### Ejercicio 1.2: Trade-offs
 
@@ -87,15 +87,15 @@ Lee el siguiente escenario y responde las preguntas:
 
 a) ¿Por qué el modelo base responde de manera literal a la solicitud?
 
-Porque el modelo base solo ha sido pre-entrenado para predecir el siguiente token según patrones estadísticos del lenguaje, no para juzgar intenciones. Si ha visto ejemplos de emails persuasivos o textos similares en los datos, los reproduce sin distinguir si el uso es ético o ilegal.
+El modelo base es básicamente una máquina de completar texto - ha aprendido a predecir la siguiente palabra basándose en millones de ejemplos. No tiene concepto de bien o mal, simplemente ve "email convincente" en sus datos y genera lo que ha visto antes, sin filtrar si es ético o peligroso.
 
 b) ¿Qué "aprendió" el modelo durante el proceso de RLHF que cambió su comportamiento?
 
-Durante el RLHF el modelo aprende preferencias humanas, es decir, qué respuestas son aceptables y cuáles no. Se le refuerza para rechazar solicitudes dañinas y ofrecer alternativas seguras, alineando su salida con normas sociales, legales y éticas.
+Con RLHF el modelo recibe feedback de humanos reales que le enseñan qué está bien y qué está mal. Es como tener un profesor que te corrige: "esto no, mejor rechaza este tipo de peticiones y ofrece ayuda legítima". Así aprende a alinearse con lo que consideramos comportamiento ético y seguro.
 
 c) ¿Puede el alineamiento ser excesivo? Da un ejemplo de "over-refusal".
 
-Sí, puede volverse demasiado restrictivo y rechazar pedidos legítimos. Por ejemplo, negarse a explicar cómo funciona un ataque de phishing con fines educativos o de ciberseguridad, incluso cuando el contexto es defensivo o académico.
+Totalmente, a veces se pasan de cautelosos. Por ejemplo, si un profesor de ciberseguridad le pide que explique cómo funciona el phishing para enseñar a sus alumnos a defenderse, un modelo con over-refusal se negaría aunque el propósito sea educativo y totalmente legítimo.
 
 ---
 
@@ -115,7 +115,7 @@ Usa el tokenizador de OpenAI (https://platform.openai.com/tokenizer) para analiz
 
 **Pregunta**: ¿Por qué el español y otros idiomas suelen requerir más tokens que el inglés para expresar el mismo contenido? (2-3 oraciones)
 
-Los tokenizadores de LLMs están optimizados principalmente para inglés porque la mayoría de datos de entrenamiento son en ese idioma. Otros idiomas, especialmente con caracteres no latinos o palabras compuestas largas, se dividen en más subpalabras (subword units) porque son menos frecuentes en el corpus. Esto hace que el mismo concepto necesite más tokens, aumentando costos y reduciendo el contexto efectivo disponible.
+Básicamente es porque estos modelos fueron entrenados sobre todo con texto en inglés, así que "conocen" mejor ese idioma. Cuando llega una palabra en español o en japonés, la tienen que partir en trozos más pequeños porque les resulta menos familiar. El resultado es que dices lo mismo pero gastas más tokens, lo que te sale más caro y te deja menos espacio para tu contexto.
 
 ### Ejercicio 3.2: Experimentación con Parámetros
 
@@ -129,13 +129,13 @@ Genera 3 respuestas con diferentes configuraciones (si no puedes cambiar paráme
 
 | Configuración | Resultado esperado/obtenido |
 |---------------|---------------------------|
-| Temperature = 0.2 | "El bosque antiguo permanece en silencio, con robles centenarios que proyectan sombras densas. Un camino apenas visible se adentra entre la niebla matinal." (Predecible, coherente, formal) |
-| Temperature = 0.8 | "Entre los árboles retorcidos, la niebla baila con misterio mientras susurros ancestrales parecen flotar en el aire. Luces tenues parpadean entre las sombras, invitando a explorar lo desconocido." (Creativo, variado, más descriptivo) |
-| Temperature = 1.5 | "Árboles-espectros danzan caóticamente bajo lunas gemelas inexistentes, mientras el viento canta ecuaciones prohibidas. Hongos bioluminiscentes recitan poemas en idiomas olvidados por civilizaciones no nacidas." (Muy creativo, puede ser incoherente o surrealista) |
+| Temperature = 0.2 | "El bosque antiguo permanece en silencio, con robles centenarios que proyectan sombras densas. Un camino apenas visible se adentra entre la niebla matinal." |
+| Temperature = 0.8 | "Entre los árboles retorcidos, la niebla baila con misterio mientras susurros ancestrales parecen flotar en el aire. Luces tenues parpadean entre las sombras, invitando a explorar lo desconocido."  |
+| Temperature = 1.5 | "Árboles-espectros danzan caóticamente bajo lunas gemelas inexistentes, mientras el viento canta ecuaciones prohibidas. Hongos bioluminiscentes recitan poemas en idiomas olvidados por civilizaciones no nacidas." |
 
 **Pregunta**: ¿Para qué tipo de tareas usarías temperature baja vs alta? Da un ejemplo de cada una.
 
-Temperature baja (0.0-0.3) es ideal para tareas que requieren precisión y consistencia, como responder preguntas factuales, generar código, o traducción técnica donde necesitas la respuesta más probable. Temperature alta (0.8-1.5) es útil para tareas creativas como escritura de ficción, brainstorming de ideas innovadoras, o generación de contenido artístico donde la variedad y originalidad son más importantes que la predicibilidad.
+La temperature baja es tu amiga cuando necesitas que el modelo sea predecible y preciso - tipo cuando le pides que escriba código o responda datos objetivos ("¿cuál es la capital de Francia?"). La temperature alta es para cuando quieres creatividad y que se arriesgue: escribir un cuento de fantasía, inventar nombres de productos, o hacer brainstorming de ideas locas para tu startup.
 
 ---
 
@@ -147,10 +147,10 @@ Describe brevemente (2-3 oraciones cada una) cómo las siguientes limitaciones a
 
 | Limitación | Impacto en Producción |
 |------------|----------------------|
-| Alucinaciones | Los LLMs pueden generar información falsa con mucha confianza, lo que es crítico en aplicaciones médicas, legales o financieras. Requiere implementar verificación externa (RAG, fact-checking) y disclaimers claros. En producción esto aumenta complejidad y puede erosionar la confianza del usuario si no se gestiona adecuadamente. |
-| Conocimiento desactualizado (knowledge cutoff) | El modelo no conoce eventos, productos o información posterior a su fecha de entrenamiento, haciéndolo inútil para noticias recientes o datos cambiantes. Esto obliga a integrar fuentes de datos en tiempo real (APIs, bases de datos actualizadas) o reentrenar periódicamente, aumentando costos. Para aplicaciones que requieren información actual, es un bloqueador sin sistemas complementarios. |
-| Sesgos heredados de datos de entrenamiento | Los modelos replican y amplifican prejuicios culturales, de género, raza o socioeconómicos presentes en los datos de entrenamiento. En aplicaciones de RRHH, crédito o justicia, esto puede llevar a discriminación sistemática y problemas legales graves. Requiere auditorías constantes, diversificación de datos de entrenamiento y mecanismos de mitigación de sesgos. |
-| Ventana de contexto limitada | Aunque las ventanas han crecido (de 4K a 128K+ tokens), muchas aplicaciones empresariales necesitan procesar documentos masivos o conversaciones muy largas. Esto limita casos de uso como análisis de contratos extensos o chatbots con memoria prolongada. Hay que implementar estrategias de chunking, summarización o bases de datos vectoriales, añadiendo complejidad arquitectónica. |
+| Alucinaciones | Los LLMs a veces se inventan cosas con una confianza que da miedo - imagina que te da un diagnóstico médico totalmente falso pero sonando súper seguro. En producción tienes que añadir capas de verificación, RAG para anclar a datos reales, y avisos claros al usuario. Si no lo gestionas bien, la gente deja de confiar en tu producto (y con razón). |
+| Conocimiento desactualizado (knowledge cutoff) | El modelo quedó "congelado" en el tiempo cuando lo entrenaron, así que no sabe nada de lo que pasó después. Si le preguntas por la película que salió la semana pasada o el nuevo iPhone, no tiene ni idea. Para arreglarlo tienes que conectarle APIs con info actual o reentrenarlo constantemente, lo que sale carísimo. Sin eso, es inútil para cosas que cambian rápido. |
+| Sesgos heredados de datos de entrenamiento | Si el modelo entrenó con datos llenos de prejuicios (sexismo, racismo, etc.), va a reproducir esos sesgos. Imagina un sistema de RRHH que descarta CVs de mujeres automáticamente porque "aprendió" que los buenos candidatos eran hombres - es un problemón legal y ético enorme. Necesitas auditar constantemente, diversificar tus datos y tener mecanismos para detectar y corregir estos sesgos. |
+| Ventana de contexto limitada | Aunque ahora los modelos aguantan más contexto (algunos hasta 128K tokens), sigue siendo limitado. Si quieres analizar un contrato de 500 páginas o tener un chatbot que recuerde una conversación de todo el día, te quedas corto. Hay trucos como partir el texto en trozos, hacer resúmenes o usar bases de datos vectoriales, pero todo eso complica muchísimo tu arquitectura. |
 
 ### Ejercicio 4.2: Caso Ético
 
@@ -162,19 +162,19 @@ Lee el siguiente escenario y responde:
 
 a) ¿Cuáles son los riesgos principales de esta aplicación? (lista 3)
 
-1. **Diagnósticos erróneos**: Un 5% de error en temas médicos puede causar daños graves o muerte; los pacientes pueden confiar ciegamente en la IA sin buscar atención profesional.
-2. **Responsabilidad legal**: En caso de malpractice ¿quién es responsable? La startup, el desarrollador, el paciente. Los LLMs no pueden asumir responsabilidad médica.
-3. **Alucinaciones médicas**: El modelo puede inventar tratamientos inexistentes o contraindicar medicamentos reales con consecuencias fatales, y los usuarios no tienen forma de verificarlo fácilmente.
+1. **Diagnósticos erróneos**: El 5% de error puede sonar bien, pero en medicina un error puede significar que alguien muera. Si la gente confía ciegamente en la IA y no va al médico de verdad, es un problema gigante.
+2. **Responsabilidad legal**: Si sale mal, ¿a quién demandas? ¿A la startup? ¿Al programador? ¿Al paciente por usarla? Es un lío legal brutal porque los LLMs no pueden ir a juicio ni pagar indemnizaciones.
+3. **Alucinaciones médicas**: El modelo puede inventarse tratamientos que no existen o decir que no tomes un medicamento que realmente necesitas. Y como suena tan convincente, la gente no tiene forma fácil de saber que se lo está inventando.
 
 b) ¿Qué medidas de mitigación recomendarías? (lista 3)
 
-1. **Disclaimer obligatorio**: Dejar claro que NO reemplaza consulta médica real y que siempre debe consultarse con un profesional de la salud antes de actuar.
-2. **Supervisión humana**: Un médico certificado debe revisar todas las recomendaciones antes de mostrarse al paciente, convirtiendo el LLM en herramienta de apoyo, no decisor autónomo.
-3. **Límites del sistema**: Restringir el alcance a información educativa general o triaje básico (¿es urgente o puede esperar?), sin dar diagnósticos específicos ni recomendar medicamentos.
+1. **Disclaimer bien grande y claro**: Que diga bien clarito que esto NO sustituye ir al médico y que cualquier cosa que salga aquí hay que consultarla con un profesional de verdad antes de hacer nada.
+2. **Supervisión humana real**: Que haya un médico de verdad revisando cada recomendación antes de que llegue al paciente. O sea, usar la IA como asistente del doctor, no como el doctor en sí.
+3. **Limitar lo que puede hacer**: Que solo de info general tipo "parece que deberías ir a urgencias ya" o "esto probablemente puede esperar al médico de cabecera", pero sin meterse en diagnósticos concretos ni recetar nada.
 
 c) ¿Debería desplegarse este sistema? Justifica tu posición en 3-4 oraciones.
 
-No debería desplegarse como asistente diagnóstico autónomo, incluso con 95% de precisión. La medicina es un campo regulado donde los errores tienen consecuencias irreversibles y la responsabilidad legal es crítica; la tecnología actual de LLMs no está preparada para asumir esa responsabilidad. Sin embargo, podría usarse en un contexto más limitado: como herramienta de apoyo para profesionales médicos (resumen de literatura, sugerencias de diagnóstico diferencial) o como sistema educativo con supervisión humana estricta. La clave está en posicionarlo correctamente como complemento, no sustituto del criterio médico humano.
+Rotundamente no como lo plantean. Aunque el 95% suene genial, estamos hablando de vidas humanas - un error aquí no es como que Netflix te recomiende mal una peli. Dicho esto, sí podría tener sentido si lo replanteas: como herramienta para que los médicos consulten literatura rápido, o para hacer triaje muy básico tipo "¿necesitas ir a urgencias YA o puedes esperar?". La clave es que sea un ayudante para profesionales o una herramienta educativa con supervisión, nunca un sustituto del médico que toma decisiones solo.
 
 ---
 
