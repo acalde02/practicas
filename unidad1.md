@@ -1,3 +1,33 @@
+<div align="center">
+
+# 🤖 PRÁCTICA EVALUABLE - UNIDAD 1
+
+## Fundamentos de IA Generativa y Large Language Models
+
+---
+
+### **Análisis Comparativo de Técnicas Generativas**
+
+---
+
+<br>
+
+**Estudiante:** Adrián Calderón de Amat
+
+**Curso:** Machine Learning 2
+
+**Universidad:** U-TAD
+
+**Fecha:** Febrero 2026
+
+---
+
+</div>
+
+<div style="page-break-after: always;"></div>
+
+---
+
 # Práctica Evaluable - Unidad 1
 ## Fundamentos de IA Generativa y Large Language Models
 
@@ -35,7 +65,7 @@ Para cada caso de uso, indica la técnica generativa más apropiada (GAN, VAE, D
 
 | Caso de Uso | Técnica | Justificación |
 |-------------|---------|---------------|
-| App móvil que aplica filtros artísticos a fotos en tiempo real (<100ms) |GAN|Las GANs son perfectas aquí porque funcionan en una sola pasada, lo que las hace súper rápidas. En un móvil necesitas que sea instantáneo, y las GANs de transferencia de estilo te dan resultados visuales muy buenos sin hacerte esperar.|
+| App móvil que aplica filtros artísticos a fotos en tiempo real (<100ms) |GAN|Las GANs son perfectas aquí porque funcionan en una sola pasada forward pass, lo que las hace súper rápidas (ideal para <100ms). En un móvil con recursos limitados necesitas que sea instantáneo, y las GANs de transferencia de estilo (como CycleGAN o StyleGAN adaptado) te dan resultados visuales muy buenos sin hacerte esperar ni freír la batería.|
 | Plataforma de generación de arte digital de alta calidad con control por texto |Difusión|Ahora mismo los modelos de difusión son los reyes en arte generado por texto - piensa en Stable Diffusion o DALL-E. Dan una calidad impresionante y te permiten ajustar muchísimo con prompts, aunque son más lentos. Para una plataforma web, ese tiempo extra no es problema.|
 | Sistema de detección de anomalías en imágenes médicas que necesita un espacio latente interpretable |VAE|Los VAE crean un espacio latente más ordenado y fácil de entender que otras opciones. Esto es clave en medicina porque puedes ver qué tan "rara" es una imagen o qué tan bien se reconstruye, lo que ayuda a detectar casos anormales de forma más transparente.|
 | Generador de datos sintéticos para entrenar modelos de reconocimiento facial preservando privacidad |GAN |Las GANs se han hecho famosas por crear rostros que no existen pero parecen totalmente reales. Son geniales para crear datos de entrenamiento sin usar fotos de gente real, y puedes controlar cosas como edad o iluminación para tener un dataset más variado.|
@@ -109,13 +139,13 @@ Usa el tokenizador de OpenAI (https://platform.openai.com/tokenizer) para analiz
 |-------|-------------------|-------------|
 | "Hello, world!" | 4 | Texto simple en inglés, tokenización eficiente |
 | "Hola, mundo!" | 4 | Requiere la misma cantidad de tokens que el inglés para el mismo mensaje |
-| "Funcionamiento de transformers" | 4 | Palabra compuesta en español se divide en múltiples tokens |
-| "def calculate_sum(a, b): return a + b" | 11 | Código Python con sintaxis específica, cada símbolo cuenta |
+| "Funcionamiento de transformers" | 4 | Palabra larga en español requiere más tokens que su equivalente en inglés ("transformers working" = 3 tokens) |
+| "def calculate_sum(a, b): return a + b" | 11 | En código cada paréntesis, coma y espacio cuenta como token separado - más tokens que texto natural equivalente |
 | "日本語のテキスト" (texto en japonés) | 6 | Caracteres no latinos requieren muchos más tokens |
 
 **Pregunta**: ¿Por qué el español y otros idiomas suelen requerir más tokens que el inglés para expresar el mismo contenido? (2-3 oraciones)
 
-Básicamente es porque estos modelos fueron entrenados sobre todo con texto en inglés, así que "conocen" mejor ese idioma. Cuando llega una palabra en español o en japonés, la tienen que partir en trozos más pequeños porque les resulta menos familiar. El resultado es que dices lo mismo pero gastas más tokens, lo que te sale más caro y te deja menos espacio para tu contexto.
+Básicamente es porque estos modelos fueron entrenados sobre todo con texto en inglés (más del 90% del corpus en muchos casos), así que "conocen" mejor ese idioma. Cuando llega una palabra en español o en japonés, la tienen que partir en trozos más pequeños porque les resulta menos familiar - por ejemplo, "funcionamiento" puede ser 3-4 tokens mientras "working" es solo 1. El resultado es que dices lo mismo pero gastas más tokens, lo que te sale más caro en APIs y te deja menos espacio para tu contexto (si tienes límite de 4K tokens, en español quizás solo te caben 3K palabras vs 3.5K en inglés).
 
 ### Ejercicio 3.2: Experimentación con Parámetros
 
@@ -135,7 +165,7 @@ Genera 3 respuestas con diferentes configuraciones (si no puedes cambiar paráme
 
 **Pregunta**: ¿Para qué tipo de tareas usarías temperature baja vs alta? Da un ejemplo de cada una.
 
-La temperature baja es tu amiga cuando necesitas que el modelo sea predecible y preciso - tipo cuando le pides que escriba código o responda datos objetivos ("¿cuál es la capital de Francia?"). La temperature alta es para cuando quieres creatividad y que se arriesgue: escribir un cuento de fantasía, inventar nombres de productos, o hacer brainstorming de ideas locas para tu startup.
+La temperature baja (0.0-0.3) es tu amiga cuando necesitas que el modelo sea predecible y preciso - tipo cuando le pides que escriba código o responda datos objetivos ("¿cuál es la capital de Francia?"). Con temperature=0 básicamente siempre elige el token más probable, lo que da consistencia. La temperature alta (0.8-1.5) es para cuando quieres creatividad y que se arriesgue: escribir un cuento de fantasía, inventar nombres de productos, o hacer brainstorming de ideas locas para tu startup. A partir de 1.5 puede volverse demasiado random y perder coherencia.
 
 ---
 
@@ -147,9 +177,9 @@ Describe brevemente (2-3 oraciones cada una) cómo las siguientes limitaciones a
 
 | Limitación | Impacto en Producción |
 |------------|----------------------|
-| Alucinaciones | Los LLMs a veces se inventan cosas con una confianza que da miedo - imagina que te da un diagnóstico médico totalmente falso pero sonando súper seguro. En producción tienes que añadir capas de verificación, RAG para anclar a datos reales, y avisos claros al usuario. Si no lo gestionas bien, la gente deja de confiar en tu producto (y con razón). |
+| Alucinaciones | Los LLMs a veces se inventan cosas con una confianza que da miedo - imagina que te da un diagnóstico médico totalmente falso pero sonando súper seguro, o que cita papers académicos que nunca existieron. En producción tienes que añadir capas de verificación (fact-checking automático), RAG para anclar a datos reales verificables, y avisos claros al usuario tipo "esto puede contener errores, verifica información crítica". Si no lo gestionas bien, la gente deja de confiar en tu producto (y con razón), además de potenciales problemas legales. |
 | Conocimiento desactualizado (knowledge cutoff) | El modelo quedó "congelado" en el tiempo cuando lo entrenaron, así que no sabe nada de lo que pasó después. Si le preguntas por la película que salió la semana pasada o el nuevo iPhone, no tiene ni idea. Para arreglarlo tienes que conectarle APIs con info actual o reentrenarlo constantemente, lo que sale carísimo. Sin eso, es inútil para cosas que cambian rápido. |
-| Sesgos heredados de datos de entrenamiento | Si el modelo entrenó con datos llenos de prejuicios (sexismo, racismo, etc.), va a reproducir esos sesgos. Imagina un sistema de RRHH que descarta CVs de mujeres automáticamente porque "aprendió" que los buenos candidatos eran hombres - es un problemón legal y ético enorme. Necesitas auditar constantemente, diversificar tus datos y tener mecanismos para detectar y corregir estos sesgos. |
+| Sesgos heredados de datos de entrenamiento | Si el modelo entrenó con datos llenos de prejuicios (sexismo, racismo, etc.), va a reproducir esos sesgos. Imagina un sistema de RRHH que descarta CVs de mujeres automáticamente porque "aprendió" que los buenos candidatos eran hombres (pasó con Amazon en 2018) - es un problemón legal y ético enorme que te puede llevar a juicio por discriminación. Necesitas auditar constantemente con datasets de prueba diversos, balancear tus datos de entrenamiento, y tener mecanismos activos para detectar y corregir estos sesgos antes de que lleguen al usuario. |
 | Ventana de contexto limitada | Aunque ahora los modelos aguantan más contexto (algunos hasta 128K tokens), sigue siendo limitado. Si quieres analizar un contrato de 500 páginas o tener un chatbot que recuerde una conversación de todo el día, te quedas corto. Hay trucos como partir el texto en trozos, hacer resúmenes o usar bases de datos vectoriales, pero todo eso complica muchísimo tu arquitectura. |
 
 ### Ejercicio 4.2: Caso Ético
@@ -162,7 +192,7 @@ Lee el siguiente escenario y responde:
 
 a) ¿Cuáles son los riesgos principales de esta aplicación? (lista 3)
 
-1. **Diagnósticos erróneos**: El 5% de error puede sonar bien, pero en medicina un error puede significar que alguien muera. Si la gente confía ciegamente en la IA y no va al médico de verdad, es un problema gigante.
+1. **Diagnósticos erróneos**: El 5% de error puede sonar bien en un benchmark, pero en medicina un error puede significar que alguien muera o que no se detecte un cáncer a tiempo. Además, ese 95% es en datos de prueba controlados - en el mundo real con casos raros o síntomas ambiguos puede ser mucho peor. Si la gente confía ciegamente en la IA y no va al médico de verdad, es un problema gigante.
 2. **Responsabilidad legal**: Si sale mal, ¿a quién demandas? ¿A la startup? ¿Al programador? ¿Al paciente por usarla? Es un lío legal brutal porque los LLMs no pueden ir a juicio ni pagar indemnizaciones.
 3. **Alucinaciones médicas**: El modelo puede inventarse tratamientos que no existen o decir que no tomes un medicamento que realmente necesitas. Y como suena tan convincente, la gente no tiene forma fácil de saber que se lo está inventando.
 
@@ -174,7 +204,7 @@ b) ¿Qué medidas de mitigación recomendarías? (lista 3)
 
 c) ¿Debería desplegarse este sistema? Justifica tu posición en 3-4 oraciones.
 
-Rotundamente no como lo plantean. Aunque el 95% suene genial, estamos hablando de vidas humanas - un error aquí no es como que Netflix te recomiende mal una peli. Dicho esto, sí podría tener sentido si lo replanteas: como herramienta para que los médicos consulten literatura rápido, o para hacer triaje muy básico tipo "¿necesitas ir a urgencias YA o puedes esperar?". La clave es que sea un ayudante para profesionales o una herramienta educativa con supervisión, nunca un sustituto del médico que toma decisiones solo.
+Rotundamente no como lo plantean - dar recomendaciones médicas directo a pacientes. Aunque el 95% suene genial, estamos hablando de vidas humanas donde un error no es como que Netflix te recomiende mal una peli, y además falta toda la regulación sanitaria necesaria (FDA, AEMPS, etc.). Dicho esto, sí podría tener sentido si lo replanteas completamente: como herramienta de apoyo para que médicos consulten literatura actualizada rápido, para hacer triaje muy básico supervisado tipo "¿necesitas ir a urgencias YA o puede esperar?", o para educación sanitaria general sin diagnósticos específicos. La clave es posicionarlo como asistente para profesionales certificados o herramienta informativa con disclaimers masivos, nunca como sustituto del criterio médico humano que toma decisiones clínicas autónomamente.
 
 ---
 
