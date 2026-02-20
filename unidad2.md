@@ -1406,6 +1406,16 @@ Claude Sonnet 4.6 puede ser interesante en escenarios donde se busquen explicaci
 
 ---
 
+## Limitaciones del experimento
+
+El “experimento” que he hecho aquí es bastante pequeño: he usado pocos ejemplos, funciones relativamente sencillas y solo he comparado dos modelos en una única configuración. Además, la evaluación es totalmente manual y subjetiva. Tampoco he medido cosas como coste, tiempo de respuesta o estabilidad entre varias ejecuciones, así que las conclusiones sirven más como intuición que como algo estadísticamente sólido.
+
+## Mejoras del protocolo
+
+Si repitiese la práctica, ampliaría el conjunto de casos (código más variado y más realista), probaría más modelos y controlaría mejor los parámetros para que la comparación fuese más justa. También intentaría definir criterios de evaluación más objetivos, quizá con algún tipo de revisión “ciega”, y documentaría de forma más sistemática los fallos típicos de cada modelo. Con todo eso, el protocolo se parecería más a una pequeña batería de tests reproducible que a una simple demo puntual.
+
+---
+
 ## Rúbrica de Evaluación
 
 | Criterio | Peso | Descripción |
