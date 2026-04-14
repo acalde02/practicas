@@ -114,11 +114,13 @@ Esto permitiría:
 - Añadir logs y trazabilidad del sistema
 - Implementar evaluación automática de respuestas
 
-### Justificación del diseño (enfoque humano)
+### Justificación del diseño
 
 El sistema ha sido diseñado priorizando simplicidad, eficiencia y accesibilidad. La elección de herramientas gratuitas no solo responde a una limitación económica, sino también a una intención de demostrar que es posible construir soluciones funcionales sin depender de infraestructuras costosas.
 
 Además, el enfoque adoptado permite comprender en profundidad cada componente del pipeline RAG, lo cual resulta fundamental en un entorno académico y de aprendizaje.
+
+Otro aspecto relevante del diseño es el estilo de comunicación del chatbot. Se ha configurado para responder de forma clara, directa y profesional, evitando respuestas excesivamente creativas o ambiguas. Este enfoque permite que las respuestas sean fácilmente interpretables por el usuario y mantiene la coherencia con un entorno empresarial. Además, el uso de una temperatura baja contribuye a que el modelo mantenga un tono consistente y controlado, reduciendo variaciones innecesarias en las respuestas y reforzando la percepción de que el sistema ha sido diseñado cuidadosamente para un propósito específico.
 
 ---
 
