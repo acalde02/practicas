@@ -6,3 +6,4 @@ chroma_db/
 .DS_Store
 
 credentials.json
+unidad6/gmail-mcp-server/token.json
